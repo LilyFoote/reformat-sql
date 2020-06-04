@@ -23,9 +23,10 @@ def format_identifier_list(identifier_list):
 
 def format_sql(sql):
     output = []
+    row = []
     for token in sqlparse.parse(sql)[0].tokens:
         if isinstance(token, IdentifierList):
-            output.extend(format_identifier_list(token))
+            row.extend(format_identifier_list(token))
         else:
             if token.is_keyword:
                 indent = None
@@ -34,8 +35,12 @@ def format_sql(sql):
                 elif token.value in ('LIMIT', 'INNER JOIN', 'LEFT OUTER JOIN'):
                     indent = 4
                 if indent is not None:
-                    output[-1] = '\n' + ' ' * indent
-            output.append(str(token))
+                    # trim trailing whitespace
+                    output.append(''.join(row[:-1]))
+                    row = [' ' * indent]
+            row.append(str(token))
 
-    output.append('\n')
-    return ''.join(output)
+    output.append(''.join(row))
+    # include trailing newline
+    output.append('')
+    return '\n'.join(output)
