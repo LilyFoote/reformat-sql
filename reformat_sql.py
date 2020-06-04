@@ -32,7 +32,7 @@ def format_where_parentheses(parenthesis, indent):
             rows.extend(rest)
             row = [' ' * indent]
         elif token.is_keyword:
-            if row:
+            if ''.join(row).strip():
                 rows.append(row[:-1])
             row = [' ' * indent, str(token)]
         else:

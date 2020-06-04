@@ -57,3 +57,19 @@ def test_format_nested_where():
     ''')
 
     assert format_sql(sql) == expected_sql
+
+
+def test_format_more_nested_where():
+    sql = """SELECT "library_book"."id", "library_book"."name", "library_book"."author_id", "library_book"."publisher_id", "library_book"."synopsis", "library_book"."publish_date", "library_book"."edition" FROM "library_book" WHERE (("library_book"."name" = 'tusk love' OR "library_book"."name" = 'the mountain range of gold') AND ("library_book"."edition" = 1 OR "library_book"."edition" = 2))"""
+
+    expected_sql = dedent('''\
+    SELECT "library_book".*
+            FROM "library_book"
+        WHERE (("library_book"."name" = 'tusk love'
+                OR "library_book"."name" = 'the mountain range of gold')
+            AND ("library_book"."edition" = 1
+                OR "library_book"."edition" = 2)
+            )
+    ''')
+
+    assert format_sql(sql) == expected_sql
