@@ -1,5 +1,5 @@
 import sqlparse
-from sqlparse.sql import Identifier, IdentifierList, Token, Where
+from sqlparse.sql import Identifier, IdentifierList, Parenthesis, Token, Where
 from sqlparse.tokens import Wildcard
 
 
@@ -21,6 +21,46 @@ def format_identifier_list(identifier_list):
             yield str(token)
 
 
+def format_where_parentheses(parenthesis, indent):
+    rows = []
+    row = []
+    for token in parenthesis.tokens:
+        if isinstance(token, Parenthesis):
+            first, rest = format_where_parentheses(token, indent + 4)
+            row.extend(first)
+            rows.append(row)
+            rows.extend(rest)
+            row = [' ' * indent]
+        elif token.is_keyword:
+            if row:
+                rows.append(row[:-1])
+            row = [' ' * indent, str(token)]
+        else:
+            row.append(str(token))
+    if row:
+        rows.append(row)
+
+    return rows[0], rows[1:]
+
+
+def format_where(where, indent=4):
+    rows = []
+    row = [' ' * indent]
+    for token in where.tokens:
+        if isinstance(token, Parenthesis):
+            first, rest = format_where_parentheses(token, indent + 4)
+            row.extend(first)
+            rows.append(row)
+            rows.extend(rest)
+            row = []
+        else:
+            row.append(str(token))
+    if row:
+        rows.append(row)
+
+    return rows
+
+
 def format_sql(sql):
     output = []
     row = []
@@ -29,8 +69,10 @@ def format_sql(sql):
             row.extend(format_identifier_list(token))
         elif isinstance(token, Where):
             output.append(''.join(row[:-1]))
-            row = [' ' * 4]
-            row.append(str(token))
+            rows = format_where(token)
+            for row in rows[:-1]:
+                output.append(''.join(row))
+            row = rows[-1]
         else:
             if token.is_keyword:
                 indent = None
