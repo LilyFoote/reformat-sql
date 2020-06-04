@@ -87,3 +87,15 @@ def test_format_nested_where_no_parenthesis_last():
     ''')
 
     assert format_sql(sql) == expected_sql
+
+
+def test_format_annotation():
+    sql = 'SELECT "library_book"."id", "library_book"."name", "library_book"."author_id", "library_book"."publisher_id", "library_book"."synopsis", "library_book"."publish_date", "library_book"."edition", ("library_book"."edition" + 1) AS "next_edition" FROM "library_book"'
+
+    expected_sql = dedent('''\
+    SELECT "library_book".*,
+            ("library_book"."edition" + 1) AS "next_edition"
+            FROM "library_book"
+    ''')
+
+    assert format_sql(sql) == expected_sql

@@ -14,8 +14,9 @@ def format_identifier_list(identifier_list):
             if token.get_parent_name() == current_name:
                 continue
 
-            token.tokens[-1] = Token(Wildcard, '*')
-            current_name = token.get_parent_name()
+            if not token.has_alias():
+                token.tokens[-1] = Token(Wildcard, '*')
+                current_name = token.get_parent_name()
 
             yield ',\n        '
             yield str(token)
