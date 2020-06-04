@@ -13,3 +13,20 @@ def test_format_sql():
     ''')
 
     assert format_sql(sql) == expected_sql
+
+
+def test_format_joins():
+    sql = 'SELECT "library_book"."id", "library_book"."name", "library_book"."author_id", "library_book"."publisher_id", "library_book"."synopsis", "library_book"."publish_date", "library_book"."edition", "library_author"."id", "library_author"."name", "library_author"."date_of_birth", "library_author"."biography", "library_publisher"."id", "library_publisher"."name" FROM "library_book" INNER JOIN "library_author" ON ("library_book"."author_id" = "library_author"."id") LEFT OUTER JOIN "library_publisher" ON ("library_book"."publisher_id" = "library_publisher"."id")'
+
+    expected_sql = dedent('''\
+    SELECT "library_book".*,
+            "library_author".*,
+            "library_publisher".*
+            FROM "library_book"
+        INNER JOIN "library_author"
+            ON ("library_book"."author_id" = "library_author"."id")
+        LEFT OUTER JOIN "library_publisher"
+            ON ("library_book"."publisher_id" = "library_publisher"."id")
+    ''')
+
+    assert format_sql(sql) == expected_sql
