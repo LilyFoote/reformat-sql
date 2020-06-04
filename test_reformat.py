@@ -30,3 +30,15 @@ def test_format_joins():
     ''')
 
     assert format_sql(sql) == expected_sql
+
+
+def test_format_where():
+    sql = r"""SELECT "library_book"."id", "library_book"."name", "library_book"."author_id", "library_book"."publisher_id", "library_book"."synopsis", "library_book"."publish_date", "library_book"."edition" FROM "library_book" WHERE "library_book"."name" LIKE '%tusk love%' ESCAPE '\'"""
+
+    expected_sql = dedent('''\
+    SELECT "library_book".*
+            FROM "library_book"
+        WHERE "library_book"."name" LIKE '%tusk love%' ESCAPE '\\'
+    ''')
+
+    assert format_sql(sql) == expected_sql

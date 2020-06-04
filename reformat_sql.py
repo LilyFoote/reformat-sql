@@ -1,5 +1,5 @@
 import sqlparse
-from sqlparse.sql import Identifier, IdentifierList, Token
+from sqlparse.sql import Identifier, IdentifierList, Token, Where
 from sqlparse.tokens import Wildcard
 
 
@@ -27,6 +27,10 @@ def format_sql(sql):
     for token in sqlparse.parse(sql)[0].tokens:
         if isinstance(token, IdentifierList):
             row.extend(format_identifier_list(token))
+        elif isinstance(token, Where):
+            output.append(''.join(row[:-1]))
+            row = [' ' * 4]
+            row.append(str(token))
         else:
             if token.is_keyword:
                 indent = None
