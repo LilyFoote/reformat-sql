@@ -1,3 +1,6 @@
+import argparse
+import sys
+
 import sqlparse
 from sqlparse.sql import (
     Case, Identifier, IdentifierList, Parenthesis, Token, Where
@@ -154,3 +157,35 @@ def format_sql(sql):
         output.append(''.join(row))
 
     return '\n'.join(output)
+
+
+def main():
+    prog = 'python -m reformat_sql'
+    description = ('A simple command line interface for reformat_sql module '
+                   'to pretty-print sql objects.')
+    parser = argparse.ArgumentParser(prog=prog, description=description)
+    parser.add_argument('infile', nargs='?',
+                        type=argparse.FileType(encoding="utf-8"),
+                        help='a sql file to be pretty-printed',
+                        default=sys.stdin)
+    parser.add_argument('outfile', nargs='?',
+                        type=argparse.FileType('w', encoding="utf-8"),
+                        help='write the output of infile to outfile',
+                        default=sys.stdout)
+    options = parser.parse_args()
+
+    infile = options.infile
+    outfile = options.outfile
+    with infile, outfile:
+        try:
+            sql = format_sql(infile.read())
+            outfile.write(sql)
+        except ValueError as e:
+            raise SystemExit(e)
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except BrokenPipeError as exc:
+        sys.exit(exc.errno)
