@@ -137,20 +137,20 @@ def format_token(token, row):
 
 def format_sql(sql):
     output = []
-    row = []
-    for token in sqlparse.parse(sql)[0].tokens:
-        if isinstance(token, IdentifierList):
-            rows = format_identifier_list(token, row)
-        elif isinstance(token, Where):
-            output.append(''.join(row[:-1]))
-            rows = format_where(token)
-        else:
-            rows = format_token(token, row)
-        for row in rows[:-1]:
-            output.append(''.join(row))
-        row = rows[-1]
+    for statement in sqlparse.parse(sql):
+        row = []
+        for token in statement.tokens:
+            if isinstance(token, IdentifierList):
+                rows = format_identifier_list(token, row)
+            elif isinstance(token, Where):
+                output.append(''.join(row[:-1]))
+                rows = format_where(token)
+            else:
+                rows = format_token(token, row)
+            for row in rows[:-1]:
+                output.append(''.join(row))
+            row = rows[-1]
 
-    output.append(''.join(row))
-    # include trailing newline
-    output.append('')
+        output.append(''.join(row))
+
     return '\n'.join(output)
