@@ -57,8 +57,7 @@ def format_identifier_list(identifier_list, row):
                 row = case_rows[-1]
             else:
                 row = [' ' * 8, str(token)]
-    if row:
-        rows.append(row)
+    rows.append(row)
     return rows
 
 
