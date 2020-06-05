@@ -90,20 +90,14 @@ def format_sql(sql):
     for token in sqlparse.parse(sql)[0].tokens:
         if isinstance(token, IdentifierList):
             rows = format_identifier_list(token, row)
-            for row in rows[:-1]:
-                output.append(''.join(row))
-            row = rows[-1]
         elif isinstance(token, Where):
             output.append(''.join(row[:-1]))
             rows = format_where(token)
-            for row in rows[:-1]:
-                output.append(''.join(row))
-            row = rows[-1]
         else:
             rows = format_token(token, row)
-            for row in rows[:-1]:
-                output.append(''.join(row))
-            row = rows[-1]
+        for row in rows[:-1]:
+            output.append(''.join(row))
+        row = rows[-1]
 
     output.append(''.join(row))
     # include trailing newline
