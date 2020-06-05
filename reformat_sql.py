@@ -1,6 +1,35 @@
 import sqlparse
-from sqlparse.sql import Identifier, IdentifierList, Parenthesis, Token, Where
+from sqlparse.sql import (
+    Case, Identifier, IdentifierList, Parenthesis, Token, Where
+)
 from sqlparse.tokens import Wildcard
+
+
+def format_case(token, indent=8):
+    rows = []
+    row = [' ' * indent]
+
+    case, *rest = token.tokens
+    for part in case.tokens:
+        if part.is_keyword:
+            if part.value in ('WHEN', 'ELSE'):
+                rows.append(row[:-1])
+                row = [' ' * (indent + 4)]
+            elif part.value == 'THEN':
+                rows.append(row[:-1])
+                row = [' ' * (indent + 8)]
+            elif part.value == 'END':
+                rows.append(row[:-1])
+                row = [' ' * indent]
+
+        row.append(str(part))
+
+    for part in rest:
+        row.append(str(part))
+
+    if row:
+        rows.append(row)
+    return rows
 
 
 def format_identifier_list(identifier_list, row):
@@ -21,7 +50,12 @@ def format_identifier_list(identifier_list, row):
 
             row.append(',')
             rows.append(row)
-            row = [' ' * 8, str(token)]
+
+            if isinstance(token.token_first(), Case):
+                rows.extend(format_case(token))
+                row = []
+            else:
+                row = [' ' * 8, str(token)]
     if row:
         rows.append(row)
     return rows

@@ -99,3 +99,21 @@ def test_format_annotation():
     ''')
 
     assert format_sql(sql) == expected_sql
+
+
+def test_format_case_when():
+    sql = '''SELECT "library_book"."id", "library_book"."name", "library_book"."author_id", "library_book"."publisher_id", "library_book"."synopsis", "library_book"."publish_date", "library_book"."edition", CASE WHEN "library_book"."edition" = 1 THEN 'First' WHEN "library_book"."edition" = 2 THEN 'Second' ELSE 'Other' END AS "text_edition" FROM "library_book"'''
+
+    expected_sql = dedent('''\
+    SELECT "library_book".*,
+            CASE
+                WHEN "library_book"."edition" = 1
+                    THEN 'First'
+                WHEN "library_book"."edition" = 2
+                    THEN 'Second'
+                ELSE 'Other'
+            END AS "text_edition"
+            FROM "library_book"
+    ''')
+
+    assert format_sql(sql) == expected_sql
