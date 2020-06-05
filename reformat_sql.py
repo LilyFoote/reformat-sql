@@ -3,11 +3,12 @@ from sqlparse.sql import Identifier, IdentifierList, Parenthesis, Token, Where
 from sqlparse.tokens import Wildcard
 
 
-def format_identifier_list(identifier_list):
+def format_identifier_list(identifier_list, row):
+    rows = []
     first = identifier_list.token_first()
     first.tokens[-1] = Token(Wildcard, '*')
     current_name = first.get_parent_name()
-    yield str(first)
+    row.append(str(first))
 
     for token in identifier_list.tokens[1:]:
         if isinstance(token, Identifier):
@@ -18,8 +19,12 @@ def format_identifier_list(identifier_list):
                 token.tokens[-1] = Token(Wildcard, '*')
                 current_name = token.get_parent_name()
 
-            yield ',\n        '
-            yield str(token)
+            row.append(',')
+            rows.append(row)
+            row = [' ' * 8, str(token)]
+    if row:
+        rows.append(row)
+    return rows
 
 
 def format_where_parentheses(parenthesis, indent):
@@ -67,7 +72,10 @@ def format_sql(sql):
     row = []
     for token in sqlparse.parse(sql)[0].tokens:
         if isinstance(token, IdentifierList):
-            row.extend(format_identifier_list(token))
+            rows = format_identifier_list(token, row)
+            for row in rows[:-1]:
+                output.append(''.join(row))
+            row = rows[-1]
         elif isinstance(token, Where):
             output.append(''.join(row[:-1]))
             rows = format_where(token)
