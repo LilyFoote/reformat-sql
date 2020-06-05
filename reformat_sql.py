@@ -67,6 +67,23 @@ def format_where(where, indent=4):
     return rows
 
 
+def format_token(token, row):
+    rows = []
+    if token.is_keyword:
+        indent = None
+        if token.value in ('FROM', 'ON'):
+            indent = 8
+        elif token.value in ('LIMIT', 'INNER JOIN', 'LEFT OUTER JOIN'):
+            indent = 4
+        if indent is not None:
+            # trim trailing whitespace
+            rows.append(''.join(row[:-1]))
+            row = [' ' * indent]
+    row.append(str(token))
+    rows.append(row)
+    return rows
+
+
 def format_sql(sql):
     output = []
     row = []
@@ -83,17 +100,10 @@ def format_sql(sql):
                 output.append(''.join(row))
             row = rows[-1]
         else:
-            if token.is_keyword:
-                indent = None
-                if token.value in ('FROM', 'ON'):
-                    indent = 8
-                elif token.value in ('LIMIT', 'INNER JOIN', 'LEFT OUTER JOIN'):
-                    indent = 4
-                if indent is not None:
-                    # trim trailing whitespace
-                    output.append(''.join(row[:-1]))
-                    row = [' ' * indent]
-            row.append(str(token))
+            rows = format_token(token, row)
+            for row in rows[:-1]:
+                output.append(''.join(row))
+            row = rows[-1]
 
     output.append(''.join(row))
     # include trailing newline
