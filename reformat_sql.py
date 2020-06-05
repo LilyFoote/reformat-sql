@@ -52,8 +52,9 @@ def format_identifier_list(identifier_list, row):
             rows.append(row)
 
             if isinstance(token.token_first(), Case):
-                rows.extend(format_case(token))
-                row = []
+                case_rows = format_case(token)
+                rows.extend(case_rows[:-1])
+                row = case_rows[-1]
             else:
                 row = [' ' * 8, str(token)]
     if row:
