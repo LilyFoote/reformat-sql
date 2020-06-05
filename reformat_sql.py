@@ -8,7 +8,8 @@ from sqlparse.sql import (
 from sqlparse.tokens import Wildcard
 
 
-def format_case(token, indent=8):
+def format_case(token, indent):
+    indent += 8
     rows = []
     row = [' ' * indent]
 
@@ -35,7 +36,8 @@ def format_case(token, indent=8):
     return rows
 
 
-def format_order_by(identifier_list, row, indent=8):
+def format_order_by(identifier_list, row, indent):
+    indent += 8
     rows = []
     first = identifier_list.token_first()
     row.append(str(first))
@@ -49,10 +51,10 @@ def format_order_by(identifier_list, row, indent=8):
     return rows
 
 
-def format_identifier_list(identifier_list, row):
+def format_identifier_list(identifier_list, row, indent):
     first = identifier_list.token_first()
     if first.tokens[-1].is_keyword:
-        return format_order_by(identifier_list, row)
+        return format_order_by(identifier_list, row, indent)
 
     first.tokens[-1] = Token(Wildcard, '*')
     current_name = first.get_parent_name()
@@ -72,11 +74,11 @@ def format_identifier_list(identifier_list, row):
             rows.append(row)
 
             if isinstance(token.token_first(), Case):
-                case_rows = format_case(token)
+                case_rows = format_case(token, indent)
                 rows.extend(case_rows[:-1])
                 row = case_rows[-1]
             else:
-                row = [' ' * 8, str(token)]
+                row = [' ' * (indent + 8), str(token)]
     rows.append(row)
     return rows
 
@@ -103,7 +105,8 @@ def format_where_parentheses(parenthesis, indent):
     return rows[0], rows[1:]
 
 
-def format_where(where, indent=4):
+def format_where(where, indent):
+    indent += 4
     rows = []
     row = [' ' * indent]
     for token in where.tokens:
@@ -121,14 +124,14 @@ def format_where(where, indent=4):
     return rows
 
 
-def format_token(token, row):
+def format_token(token, row, base_indent):
     rows = []
     if token.is_keyword:
         indent = None
         if token.value in ('FROM', 'ON'):
-            indent = 8
+            indent = base_indent + 8
         elif token.value in ('LIMIT', 'INNER JOIN', 'LEFT OUTER JOIN', 'ORDER BY'):
-            indent = 4
+            indent = base_indent + 4
         if indent is not None:
             # trim trailing whitespace
             rows.append(''.join(row[:-1]))
@@ -142,14 +145,21 @@ def format_sql(sql):
     output = []
     for statement in sqlparse.parse(sql):
         row = []
+        indent = 0
+        for token in statement.tokens:
+            if token.value == ' ':
+                indent += 1
+            else:
+                break
+
         for token in statement.tokens:
             if isinstance(token, IdentifierList):
-                rows = format_identifier_list(token, row)
+                rows = format_identifier_list(token, row, indent=indent)
             elif isinstance(token, Where):
                 output.append(''.join(row[:-1]))
-                rows = format_where(token)
+                rows = format_where(token, indent=indent)
             else:
-                rows = format_token(token, row)
+                rows = format_token(token, row, base_indent=indent)
             for row in rows[:-1]:
                 output.append(''.join(row))
             row = rows[-1]
