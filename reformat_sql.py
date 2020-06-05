@@ -32,12 +32,29 @@ def format_case(token, indent=8):
     return rows
 
 
-def format_identifier_list(identifier_list, row):
+def format_order_by(identifier_list, row, indent=8):
     rows = []
     first = identifier_list.token_first()
+    row.append(str(first))
+    for token in identifier_list[1:]:
+        if isinstance(token, Identifier):
+            row.append(',')
+            rows.append(row)
+            row = [' ' * indent, str(token)]
+
+    rows.append(row)
+    return rows
+
+
+def format_identifier_list(identifier_list, row):
+    first = identifier_list.token_first()
+    if first.tokens[-1].is_keyword:
+        return format_order_by(identifier_list, row)
+
     first.tokens[-1] = Token(Wildcard, '*')
     current_name = first.get_parent_name()
     row.append(str(first))
+    rows = []
 
     for token in identifier_list.tokens[1:]:
         if isinstance(token, Identifier):
@@ -107,7 +124,7 @@ def format_token(token, row):
         indent = None
         if token.value in ('FROM', 'ON'):
             indent = 8
-        elif token.value in ('LIMIT', 'INNER JOIN', 'LEFT OUTER JOIN'):
+        elif token.value in ('LIMIT', 'INNER JOIN', 'LEFT OUTER JOIN', 'ORDER BY'):
             indent = 4
         if indent is not None:
             # trim trailing whitespace

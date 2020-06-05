@@ -136,3 +136,17 @@ def test_format_multiple_annotation():
     ''')
 
     assert format_sql(sql) == expected_sql
+
+
+def test_format_order_by():
+    sql = '''SELECT "library_book"."id", "library_book"."name", "library_book"."author_id", "library_book"."publisher_id", "library_book"."synopsis", "library_book"."publish_date", "library_book"."edition" FROM "library_book" ORDER BY "library_book"."name" ASC, "library_book"."edition" DESC LIMIT 1'''
+
+    expected_sql = dedent('''\
+    SELECT "library_book".*
+            FROM "library_book"
+        ORDER BY "library_book"."name" ASC,
+            "library_book"."edition" DESC
+        LIMIT 1
+    ''')
+
+    assert format_sql(sql) == expected_sql
