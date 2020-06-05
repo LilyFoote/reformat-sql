@@ -178,8 +178,9 @@ def main():
     outfile = options.outfile
     with infile, outfile:
         try:
-            sql = format_sql(infile.read())
-            outfile.write(sql)
+            for row in infile:
+                sql = format_sql(row)
+                outfile.write(sql)
         except ValueError as e:
             raise SystemExit(e)
 
